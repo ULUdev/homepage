@@ -1,0 +1,8 @@
+[http]
+port = 8080
+ip = "127.0.0.1"
+threads = 4
+logfile = "logs/log.txt"
+[http.resources]
+root = "."
+aliases = ["/:/pages/index.html", "/projects:/pages/projects.html"]
