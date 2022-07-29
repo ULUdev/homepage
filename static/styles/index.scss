@@ -1,0 +1,42 @@
+@import "global";
+
+body {
+    background-color: $primbg;
+    color: $primfg;
+}
+
+div#page-heading {
+    text-align: center;
+    margin: 60px;
+}
+
+div#description {
+    width: 600px;
+    display: flex;
+    justify-content: center;
+    margin: auto;
+    padding: 20px 20px;
+    border-radius: 10px;
+    background-color: $secbg;
+    color: $secfg;
+}
+
+div#projects_container {
+    display: flex;
+    justify-content: center;
+    margin-top: 60px;
+}
+
+a#projects_link {
+    color: $secbg;
+    background-color: $secfg;
+    text-decoration: none;
+    padding: 10px 10px;
+    border-radius: 10px;
+    transition: 300ms;
+}
+
+a#projects_link:hover {
+    color: $secfg;
+    background-color: $secbg;
+}
