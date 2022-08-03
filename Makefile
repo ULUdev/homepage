@@ -1,8 +1,20 @@
 SASSC = sassc
-STYLES = styles/index.scss styles/projects.scss
+STYLES = $(wildcard static/styles/*.scss)
 CSS = $(STYLES:.scss=.css)
+BIN = dev
+SRC = $(wildcard src/*.rs) $(wildcard src/**/*.rs)
 
-all: $(CSS)
+all: $(CSS) $(BIN)
 
 %.css: %.scss
 	$(SASSC) $< $@
+
+dev: $(SRC)
+	cargo build
+
+release: $(SRC)
+	cargo build --release
+
+clean:
+	rm -rf $(CSS)
+	cargo clean

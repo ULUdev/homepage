@@ -1,3 +1,4 @@
-logs
 *\~
-styles/*.css
+static/styles/*.css
+/target
+\.env

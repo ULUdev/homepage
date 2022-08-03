@@ -1,0 +1,15 @@
+image: rust:latest
+
+compile_server:
+  stage: build
+  script:
+    - make
+  tags:
+    - x86_64
+
+test_server:
+  stage: test
+  script:
+    - cargo test
+  tags:
+    - x86_64
