@@ -13,8 +13,10 @@ use rocket::request::FromRequest;
 use rocket::request::Request;
 use rocket::State;
 use std::path::Path;
+
 pub mod db;
 pub mod schema;
+pub mod models;
 
 pub struct DbConn(diesel::r2d2::PooledConnection<diesel::r2d2::ConnectionManager<PgConnection>>);
 
