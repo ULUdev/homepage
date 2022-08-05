@@ -122,6 +122,7 @@ dependencies = [
  "argon2",
  "diesel",
  "dotenv",
+ "rand",
  "rand_core",
  "rocket",
 ]

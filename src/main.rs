@@ -11,12 +11,17 @@ use rocket::outcome::Outcome;
 use rocket::request;
 use rocket::request::FromRequest;
 use rocket::request::Request;
+use rocket::time::Duration;
 use rocket::State;
+use std::ops::Deref;
 use std::path::Path;
+use std::sync::{Arc, Mutex};
 
 pub mod db;
-pub mod schema;
 pub mod models;
+pub mod schema;
+pub mod tokenstore;
+use tokenstore::TokenStore;
 
 pub struct DbConn(diesel::r2d2::PooledConnection<diesel::r2d2::ConnectionManager<PgConnection>>);
 
@@ -34,6 +39,13 @@ impl<'r> FromRequest<'r> for DbConn {
             },
             _ => Outcome::Failure((Status::ServiceUnavailable, ())),
         }
+    }
+}
+
+impl Deref for DbConn {
+    type Target = PgConnection;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -65,14 +77,37 @@ async fn login_page() -> Option<NamedFile> {
 }
 
 #[post("/auth", data = "<login>")]
-fn authenticate(cookies: &CookieJar<'_>, login: Form<Login<'_>>, dbcon: DbConn) {
+fn authenticate(
+    cookies: &CookieJar<'_>,
+    login: Form<Login<'_>>,
+    dbcon: DbConn,
+    token_store: &State<Arc<Mutex<TokenStore>>>,
+) -> String {
+    let mut ts = token_store.inner().lock().unwrap();
     // get some token
-    let token = 0;
+    let token = match db::authenticate_user(
+        &dbcon,
+        login.uname.to_string(),
+        login.pwd.to_string(),
+	&mut *ts
+    ) {
+        Ok(n) => n,
+        Err(e) => {
+            return match e {
+                db::AuthError::Unauthorized => String::from("<h1>Login Failed</h1>"),
+                _ => String::from("<h1>Internal Server Error</h1>"),
+            };
+        }
+    };
     // store the token as a cookie on the client
-    cookies.add_private(Cookie::new("auth_key", "<some token>"));
+    let n_tok = token.clone();
+    cookies.add_private(
+        Cookie::build("token", n_tok.clone())
+            .max_age(Duration::days(1))
+            .finish(),
+    );
 
-    // store the token in the database
-    // db::authenticate_user(conn, login.uname.to_string(), login.pwd.to_string());
+    token
 }
 
 #[catch(404)]
@@ -84,11 +119,13 @@ async fn not_found() -> Option<NamedFile> {
 
 #[launch]
 fn rocket() -> _ {
+    let token_store = Arc::new(Mutex::new(TokenStore::new()));
     rocket::build()
         .mount("/", routes![index, authenticate, login_page, projects])
         .mount("/static", FileServer::from("static/"))
         .register("/", catchers![not_found])
         .manage(db::establish_connection())
+        .manage(token_store)
 }
 
 #[cfg(test)]

@@ -2,3 +2,4 @@
 static/styles/*.css
 /target
 \.env
+Rocket.toml

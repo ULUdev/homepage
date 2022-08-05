@@ -6,6 +6,7 @@ use dotenv::dotenv;
 use super::DbConn;
 use super::schema::*;
 use super::models::*;
+use super::tokenstore::TokenStore;
 use std::env;
 use argon2::{
     password_hash::{
@@ -21,6 +22,7 @@ pub enum DbConnError {
     ConnectionFailed,
 }
 
+#[derive(Debug)]
 pub enum AuthError {
     Unauthorized,
     DbFailed,
@@ -61,10 +63,31 @@ pub fn create_new_user<'a>(conn: &PgConnection, uname: &'a str, pwd: &'a str) ->
     
 }
 
+/// verify the data the user supplied and return a token that is stored on the
+/// server
 pub fn authenticate_user(
-    conn: &DbConn,
+    conn: &PgConnection,
     uname: String,
     pwd: String,
+    store: &mut TokenStore,
 ) -> Result<String, AuthError> {
-    Ok(String::new())
+    let argon2 = Argon2::default();
+    let parsed_hash = match PasswordHash::new(&pwd) {
+	Ok(n) => n,
+	Err(_) => {return Err(AuthError::Other);}
+    };
+    if argon2.verify_password(pwd.as_bytes(), &parsed_hash).is_ok() {
+	// generate new token, store it in the database and return it.
+	let matched_users = match users::table.filter(users::dsl::name.eq(uname)).limit(1).load::<User>(conn) {
+	    Ok(n) => n,
+	    Err(_) => {
+		return Err(AuthError::DbFailed);
+	    }
+	};
+	let uid: u64 = matched_users[0].id.try_into().unwrap();
+	let token = store.new_token(uid);
+	Ok(String::new())
+    } else {
+	Err(AuthError::Unauthorized)
+    }
 }

@@ -1,6 +1,6 @@
 #[macro_export] extern crate diesel;
 use diesel::prelude::*;
-use super::schema::users;
+use super::schema::{users, tokens};
 
 // Note: pwd actually represents the hash of the password
 // privs is an eight bit integer representing individual privileges
