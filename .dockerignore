@@ -1,0 +1,4 @@
+target
+dist
+static/styles
+typescript/node_modules

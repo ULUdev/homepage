@@ -9,9 +9,8 @@ export class Projects extends LitElement {
 #projects {
     display: grid;
     grid-template-columns: auto auto auto;
-    justify-content: center;
-    align-items: center;
     margin: auto;
+width: 50%;
 }
 	.project_container {
 	    text-align: center;
@@ -33,6 +32,11 @@ color: var(--fg);
 #nothing-found {
 text-align: center;
 color: gray;
+}
+@media only screen and (max-width: 90rem) {
+#projects {
+grid-template-columns: auto;
+}
 }
 `;
     

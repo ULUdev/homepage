@@ -13,36 +13,6 @@ div#title {
     }
 }
 
-
-projects-list {
-    display: grid;
-	grid-template-columns: auto auto auto;
-    justify-content: center;
-    align-items: center;
-    margin: auto;
-    &::part(projects) {
-	.project_container {
-	    text-align: center;
-	    width: 50%;
-	    margin: 20px 20px;
-	    color: $secfg;
-	    background-color: $secbg;
-	    padding: 20px 20px;
-	    border-radius: 10px;
-	    transition: 600ms;
-	    
-	    a {
-		text-decoration: none;
-		color: $secfg;
-	    }
-	    &:hover {
-		box-shadow: 10px 10px black;
-	    }
-	}
-    }
-    &::part(nothing-found) {
-	text-align: center;
-	color: gray;
-    }
+@media only screen and (max-width: 900px) {
+    
 }
-

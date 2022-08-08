@@ -1,6 +1,6 @@
 SASSC = sassc
 STYLES = $(wildcard styles/*.scss)
-BIN = dev
+BIN = release
 SRC = $(wildcard src/*.rs) $(wildcard src/**/*.rs)
 CSS = $(subst styles,static/styles,$(STYLES:.scss=.css))
 

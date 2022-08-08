@@ -98,3 +98,14 @@ pub fn authenticate_user(
         Err(AuthError::Unauthorized)
     }
 }
+
+pub fn get_content_entry(conn: &PgConnection, title: String) -> Result<ContentEntry, DbConnError> {
+    match content::dsl::content
+        .filter(content::dsl::name.eq(title))
+        .limit(1)
+        .load::<ContentEntry>(conn)
+    {
+        Ok(n) => Ok(n[0].clone()),
+        Err(_) => Err(DbConnError::ConnectionFailed),
+    }
+}

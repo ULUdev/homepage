@@ -2,6 +2,7 @@
 extern crate rocket;
 #[macro_use]
 extern crate diesel;
+use askama::Template;
 use diesel::pg::PgConnection;
 use rocket::form::Form;
 use rocket::fs::{FileServer, NamedFile};
@@ -10,6 +11,7 @@ use rocket::outcome::Outcome;
 use rocket::request;
 use rocket::request::FromRequest;
 use rocket::request::Request;
+use rocket::response::content;
 use rocket::time::Duration;
 use rocket::State;
 use std::ops::Deref;
@@ -19,6 +21,7 @@ use std::sync::{Arc, Mutex};
 pub mod db;
 pub mod models;
 pub mod schema;
+pub mod templates;
 pub mod tokenstore;
 use tokenstore::TokenStore;
 
@@ -55,10 +58,19 @@ struct Login<'r> {
 }
 
 #[get("/")]
-async fn index() -> Option<NamedFile> {
-    NamedFile::open(Path::new("static/pages/index.html"))
-        .await
-        .ok()
+async fn index(dbcon: DbConn) -> content::RawHtml<String> {
+    let content = match db::get_content_entry(&dbcon, String::from("description")) {
+        Ok(n) => match String::from_utf8(n.content_inner) {
+            Ok(k) => k,
+            Err(_) => String::from("default"),
+        },
+        Err(_) => String::from("default"),
+    };
+    let index_template = templates::IndexTemplate::new(content);
+    match index_template.render() {
+        Ok(n) => content::RawHtml(n),
+        Err(_) => content::RawHtml(String::from("<h1>Internal Server Error</h1>")),
+    }
 }
 
 #[get("/projects")]
@@ -133,25 +145,44 @@ mod test {
     use super::*;
     use rocket::http::Status;
     use rocket::local::blocking::Client;
+    use rocket::Build;
+    use rocket::Rocket;
+
+    fn test_rocket() -> Rocket<Build> {
+        let token_store = Arc::new(Mutex::new(TokenStore::new()));
+        rocket::build()
+            .mount("/", routes![index, authenticate, login_page, projects])
+            .mount("/static", FileServer::from("static/"))
+            .mount("/dist", FileServer::from("dist/"))
+            .register("/", catchers![not_found])
+            .manage(token_store)
+    }
 
     #[test]
     fn test_index() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = Client::tracked(test_rocket()).expect("valid rocket instance");
         let response = client.get(uri!(super::index)).dispatch();
         assert_eq!(response.status(), Status::Ok);
     }
 
     #[test]
     fn test_projects() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let client = Client::tracked(test_rocket()).expect("valid rocket instance");
         let response = client.get(uri!(super::projects)).dispatch();
         assert_eq!(response.status(), Status::Ok);
     }
 
     #[test]
     fn test_static() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let response = client.get(uri!("/static/js/projects.js")).dispatch();
+        let client = Client::tracked(test_rocket()).expect("valid rocket instance");
+        let response = client.get(uri!("/static/pages/index.html")).dispatch();
+        assert_eq!(response.status(), Status::Ok);
+    }
+
+    #[test]
+    fn test_js() {
+        let client = Client::tracked(test_rocket()).expect("valid rocket instance");
+        let response = client.get(uri!("/dist/navbar-bundle.js")).dispatch();
         assert_eq!(response.status(), Status::Ok);
     }
 }
