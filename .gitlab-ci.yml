@@ -3,6 +3,8 @@ image: rust:latest
 before_script:
   - apt-get update
   - apt-get install sassc yarnpkg -y
+  - cd typescript
+  - yarnpkg
 
 cache:
   paths:
