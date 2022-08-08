@@ -8,6 +8,9 @@ body {
 div#page-heading {
     text-align: center;
     margin: 60px;
+    h1 {
+	font-size: $title_size;
+    }
 }
 
 div#description {
@@ -19,6 +22,14 @@ div#description {
     border-radius: 10px;
     background-color: $secbg;
     color: $secfg;
+    p {
+	margin: 0;
+	padding: 5px;
+	a {
+	    text-decoration: none;
+	    color: $linkfg;
+	}
+    }
 }
 
 div#projects_container {

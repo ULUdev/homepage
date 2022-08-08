@@ -8,6 +8,9 @@ body {
 div#title {
     margin: 60px;
     text-align: center;
+    h1 {
+	font-size: $title_size;
+    }
 }
 
 

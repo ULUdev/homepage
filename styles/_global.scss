@@ -4,6 +4,18 @@ $primbg: #1A1826;
 $primfg: #ABE9B3;
 $secbg: $primfg;
 $secfg: #575268;
+$linkfg: $primbg;
+$title_size: 75px;
+
+hp-navbar {
+    --bg: #{$secbg};
+    --fg: #{$secfg};
+}
+
+hp-projects {
+    --bg: #{$secbg};
+    --fg: #{$secfg};
+}
 
 body {
     font-family: 'NTR', sans-serif;

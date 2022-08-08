@@ -6,7 +6,10 @@ CSS = $(subst styles,static/styles,$(STYLES:.scss=.css))
 
 all: $(CSS) $(BIN) dist
 
-static/styles/%.css: styles/%.scss
+static/styles:
+	mkdir -p static/styles
+
+static/styles/%.css: styles/%.scss static/styles
 	$(SASSC) $< $@
 
 dist:
