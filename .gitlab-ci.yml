@@ -6,7 +6,6 @@ before_script:
   - cd typescript
   - yarnpkg
   - cd ..
-  - source .env # attempt to fix CI
 
 cache:
   paths:
@@ -21,9 +20,9 @@ compile:
   tags:
     - x86_64
 
-test_server:
-  stage: test
-  script:
-    - cargo test
-  tags:
-    - x86_64
+# test_server:
+#   stage: test
+#   script:
+#     - cargo test
+#   tags:
+#     - x86_64
