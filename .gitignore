@@ -3,3 +3,7 @@ static/styles/*.css
 /target
 \.env
 Rocket.toml
+node_modules
+dist
+*.js
+*.log

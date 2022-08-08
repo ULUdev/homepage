@@ -3,7 +3,6 @@ extern crate rocket;
 #[macro_use]
 extern crate diesel;
 use diesel::pg::PgConnection;
-use diesel::prelude::*;
 use rocket::form::Form;
 use rocket::fs::{FileServer, NamedFile};
 use rocket::http::{Cookie, CookieJar, Status};
@@ -89,7 +88,7 @@ fn authenticate(
         &dbcon,
         login.uname.to_string(),
         login.pwd.to_string(),
-	&mut *ts
+        &mut *ts,
     ) {
         Ok(n) => n,
         Err(e) => {
@@ -123,6 +122,7 @@ fn rocket() -> _ {
     rocket::build()
         .mount("/", routes![index, authenticate, login_page, projects])
         .mount("/static", FileServer::from("static/"))
+        .mount("/dist", FileServer::from("dist/"))
         .register("/", catchers![not_found])
         .manage(db::establish_connection())
         .manage(token_store)
@@ -130,7 +130,7 @@ fn rocket() -> _ {
 
 #[cfg(test)]
 mod test {
-    use super::rocket;
+    use super::*;
     use rocket::http::Status;
     use rocket::local::blocking::Client;
 

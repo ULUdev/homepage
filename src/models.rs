@@ -1,6 +1,4 @@
-#[macro_export] extern crate diesel;
-use diesel::prelude::*;
-use super::schema::{users, tokens};
+use super::schema::users;
 
 // Note: pwd actually represents the hash of the password
 // privs is an eight bit integer representing individual privileges
@@ -20,9 +18,8 @@ pub struct User {
     pub privs: i32,
 }
 
-
 #[derive(Insertable)]
-#[table_name="users"]
+#[table_name = "users"]
 pub struct NewUser<'a> {
     pub name: &'a str,
     pub pwd: &'a str,

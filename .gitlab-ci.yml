@@ -2,9 +2,15 @@ image: rust:latest
 
 before_script:
   - apt-get update
-  - apt-get install sassc -y
+  - apt-get install sassc yarnpkg -y
 
-compile_server:
+cache:
+  paths:
+    - target
+    - dist
+    - static/styles
+
+compile:
   stage: build
   script:
     - make

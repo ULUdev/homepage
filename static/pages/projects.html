@@ -3,17 +3,13 @@
   <head>
     <title>Moritz Sokoll - Projects</title>
     <link rel="stylesheet" href="/static/styles/projects.css">
-    <script src="/static/js/projects.js"></script>
+    <script type="module" src="/dist/projects-bundle.js"></script>
   </head>
-  <body onload="getProjects()">
+  <body>
     <div id="title">
       <h1>Projects</h1>
       <h2>List generated with gitlabs API</h2>
     </div>
-    <div id="projects">
-    </div>
-    <div id="nothing-found">
-      <p>No projects found</p>
-    </div>
+    <projects-list></projects-list>
   </body>
 </html>
