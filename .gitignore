@@ -6,4 +6,5 @@ Rocket.toml
 node_modules
 dist
 *.js
+!webpack.config.js
 *.log
