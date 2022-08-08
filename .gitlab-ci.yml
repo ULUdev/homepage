@@ -6,6 +6,7 @@ before_script:
   - cd typescript
   - yarnpkg
   - cd ..
+  - source .env # attempt to fix CI
 
 cache:
   paths:
