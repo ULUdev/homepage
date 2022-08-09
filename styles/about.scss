@@ -1,0 +1,39 @@
+@import "global";
+
+body {
+    color: $primfg;
+    background-color: $primbg;
+}
+
+#page-heading {
+    margin: 60px;
+    text-align: center;
+    h1 {
+	font-size: $title_size;
+    }
+}
+#technologies {
+    text-align: center;
+}
+#technologies_list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+    flex-direction: column;
+    li {
+	background-color: $secbg;
+	color: $secfg;
+	margin: 10px 10px;
+	padding: 10px 10px;
+	border-radius: 5px;
+	img {
+	    width: 100%;
+	    height: 50px;
+	}
+	a {
+	    text-decoration: none;
+	    color: $linkfg;
+	}
+    }
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Moritz Sokoll - About</title>
+    <link rel="stylesheet" href="/static/styles/about.css">
+    <script type="module" src="/dist/navbar-bundle.js"></script>
+  </head>
+  <body>
+    <hp-navbar></hp-navbar>
+    <div id="page-heading">
+      <h1>About</h1>
+    </div>
+    <div id="about-text">
+      {{ about_text }}
+    </div>
+    <div id="technologies">
+      <h2>Technologies behind this website</h2>
+      <ul id="technologies_list">
+	<li>
+	  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-plain.svg" alt="Rust"/>
+	  <p>
+	    Rust is used in the backend with the
+	    libraries <a href="http://rocket.rs">rocket</a>, <a href="http://diesel.rs">diesel</a>
+	    and <a href="https://djc.github.io/askama/">askama</a> as web
+	    frameworks, orm and templating engine respectively.
+	  </p>
+	</li>
+	<li>
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" />
+	  <p>
+	    Typescript is the language that makes this website function on your
+	    browser. The framework that goes along with it in this case
+	    is <a href="http://lit.dev">lit</a>.
+	  </p>
+        </li>
+	<li>
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original-wordmark.svg" />
+	  <p>
+	    PostgreSQL is the backend database responsible for managing users
+	    and content.
+	  </p>
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>

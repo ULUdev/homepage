@@ -51,6 +51,7 @@ color: var(--bg);
 	let nav_items = [];
 	nav_items.push(this.navItem("home", "/"));
 	nav_items.push(this.navItem("projects", "/projects"));
+	nav_items.push(this.navItem("about", "/about"));
 	nav_items.push(this.navItem("github", "http://github.com/ULUdev"));
 	nav_items.push(this.navItem("gitlab", "http://gitlab.sokoll.com/moritz"));
 	return html`<ul>${nav_items}</ul>`;
