@@ -7,23 +7,27 @@ use rocket::form::Form;
 use rocket::fs::{FileServer, NamedFile};
 use rocket::http::{Cookie, CookieJar, Status};
 use rocket::outcome::Outcome;
-use rocket::request;
 use rocket::request::FromRequest;
 use rocket::request::Request;
+use rocket::response::{Redirect, Responder};
 use rocket::time::Duration;
 use rocket::State;
-use templates::IndexTemplate;
+use rocket::{request, Response};
 use std::ops::Deref;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
+use templates::IndexTemplate;
 
+pub mod ap;
 pub mod db;
 pub mod models;
 pub mod schema;
 pub mod templates;
 pub mod tokenstore;
-use tokenstore::TokenStore;
 use templates::*;
+use tokenstore::TokenStore;
+
+use ap::ApResponse;
 
 pub struct DbConn(diesel::r2d2::PooledConnection<diesel::r2d2::ConnectionManager<PgConnection>>);
 
@@ -85,7 +89,7 @@ async fn about() -> AboutTemplate {
 // TODO: implement admin panel
 // #[get("/ap")]
 // async fn admin_panel() -> AdminTemplate {
-//     
+//
 // }
 
 #[get("/login")]
@@ -95,13 +99,41 @@ async fn login_page() -> Option<NamedFile> {
         .ok()
 }
 
+#[get("/ap")]
+fn admin_panel(
+    cookies: &CookieJar<'_>,
+    dbcon: DbConn,
+    token_store: &State<Arc<Mutex<TokenStore>>>,
+) -> ApResponse {
+    match cookies.get_private("token") {
+	Some(token) => {
+	    let mut ts = token_store.inner().lock().unwrap();
+	    let token: u64 = match token.value().parse() {
+		Ok(n) => n,
+		Err(_) => {
+		    todo!();
+		}
+	    };
+	    let uid = ts.get_id(&token);
+	    let uname = match db::get_uname(&dbcon, token) {
+		Some(n) => n,
+		None => {
+		    return ApResponse::new_error();
+		}
+	    };
+	    ApResponse::new(uname)
+	},
+	None => ApResponse::new_error(),
+    }
+}
+
 #[post("/auth", data = "<login>")]
 fn authenticate(
     cookies: &CookieJar<'_>,
     login: Form<Login<'_>>,
     dbcon: DbConn,
     token_store: &State<Arc<Mutex<TokenStore>>>,
-) -> String {
+) -> Redirect {
     let mut ts = token_store.inner().lock().unwrap();
     // get some token
     let token = match db::authenticate_user(
@@ -111,11 +143,9 @@ fn authenticate(
         &mut *ts,
     ) {
         Ok(n) => n,
-        Err(e) => {
-            return match e {
-                db::AuthError::Unauthorized => String::from("<h1>Login Failed</h1>"),
-                _ => String::from("<h1>Internal Server Error</h1>"),
-            };
+        Err(_) => {
+            //return Status::InternalServerError;
+            todo!();
         }
     };
     // store the token as a cookie on the client
@@ -126,7 +156,7 @@ fn authenticate(
             .finish(),
     );
 
-    token
+    Redirect::to(uri!("/ap"))
 }
 
 #[catch(404)]
@@ -140,7 +170,10 @@ async fn not_found() -> Option<NamedFile> {
 fn rocket() -> _ {
     let token_store = Arc::new(Mutex::new(TokenStore::new()));
     rocket::build()
-        .mount("/", routes![index, authenticate, login_page, projects, about])
+        .mount(
+            "/",
+            routes![index, authenticate, login_page, projects, about, admin_panel],
+        )
         .mount("/static", FileServer::from("static/"))
         .mount("/dist", FileServer::from("dist/"))
         .register("/", catchers![not_found])

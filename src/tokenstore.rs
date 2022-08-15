@@ -24,4 +24,8 @@ impl TokenStore {
         self.tokens.insert(token, id);
         token
     }
+
+    pub fn get_id(&self, token: &u64) -> Option<&u64> {
+	self.tokens.get(token)
+    }
 }

@@ -46,6 +46,10 @@ color: var(--bg);
     navItem(name: string, url: string) {
 	return html`<li><a href=${url}>${name}</a></li>`;
     }
+
+    navItemRight(name: string, url: string) {
+	return html`<li style="float: right"><a href=${url}>${name}</a></li>`;
+    }
     
     render() {
 	let nav_items = [];
@@ -54,6 +58,7 @@ color: var(--bg);
 	nav_items.push(this.navItem("about", "/about"));
 	nav_items.push(this.navItem("github", "http://github.com/ULUdev"));
 	nav_items.push(this.navItem("gitlab", "http://gitlab.sokoll.com/moritz"));
+	nav_items.push(this.navItemRight("login", "/login"));
 	return html`<ul>${nav_items}</ul>`;
     }
 }

@@ -1,4 +1,6 @@
 # Homepage
+[![pipelinestatus](https://gitlab.sokoll.com/moritz/homepage/badges/main/pipeline.svg)](https://gitlab.sokoll.com/moritz/homepage/-/commits/main)
+
 ## Description
 This Repository contains the files necessary to run my homepage.  It uses `rust`
 as it's backend language with the web framework `rocket` and the ORM `diesel`

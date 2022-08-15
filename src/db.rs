@@ -73,11 +73,22 @@ pub fn authenticate_user(
     store: &mut TokenStore,
 ) -> Result<String, AuthError> {
     let argon2 = Argon2::default();
-    let parsed_hash = match PasswordHash::new(&pwd) {
-        Ok(n) => n,
-        Err(_) => {
-            return Err(AuthError::Other);
-        }
+    let pwd_hash = match users::table
+	.filter(users::dsl::name.eq(uname.clone()))
+	.limit(1)
+	.load::<User>(conn)
+    {
+	Ok(n) => n[0].pwd.clone(),
+	Err(_) => {
+	    return Err(AuthError::DbFailed);
+	}
+    };
+    //DEBUG
+    let parsed_hash = match argon2::PasswordHash::new(&pwd_hash) {
+	Ok(n) => n,
+	Err(_) => {
+	    return Err(AuthError::Other);
+	}
     };
     if argon2.verify_password(pwd.as_bytes(), &parsed_hash).is_ok() {
         // generate new token, store it in the database and return it.
@@ -93,7 +104,7 @@ pub fn authenticate_user(
         };
         let uid: u64 = matched_users[0].id.try_into().unwrap();
         let _token = store.new_token(uid);
-        Ok(String::new())
+        Ok(uid.to_string())
     } else {
         Err(AuthError::Unauthorized)
     }
@@ -107,5 +118,12 @@ pub fn get_content_entry(conn: &PgConnection, title: String) -> Result<ContentEn
     {
         Ok(n) => Ok(n[0].clone()),
         Err(_) => Err(DbConnError::ConnectionFailed),
+    }
+}
+
+pub fn get_uname(conn: &PgConnection, uid: u64) -> Option<String> {
+    match users::dsl::users.filter(users::dsl::id.eq::<i32>(uid.try_into().unwrap())).limit(1).load::<User>(conn) {
+	Ok(n) => Some(n[0].name.clone()),
+	Err(_) => None
     }
 }
