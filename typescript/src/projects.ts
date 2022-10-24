@@ -55,8 +55,7 @@ grid-template-columns: auto;
     }
     
     getProjects() {
-        let error = false;
-        if (!error && this.data.length != 0) {
+        if (this.data.length != 0) {
             return html`<div id="projects" part="projects">${this.data.map((item) => html`<div class="project_container"><a href=${item.web_url}><h2>${item.name}</h2><p>${item.description}</p></a></div>`)}</div>`;
 	    
         } else if (this.data.length == 0) {

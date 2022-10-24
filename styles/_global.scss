@@ -7,12 +7,7 @@ $secfg: #575268;
 $linkfg: $primbg;
 $title_size: 75px;
 
-hp-navbar {
-    --bg: #{$secbg};
-    --fg: #{$secfg};
-}
-
-hp-projects {
+:root {
     --bg: #{$secbg};
     --fg: #{$secfg};
 }

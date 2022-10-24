@@ -3,10 +3,14 @@
   <head>
     <title>{{ uname }} - Moritz Sokoll</title>
     <link rel="stylesheet" href="/static/styles/ap.css">
+    <script src="/dist/ap-bundle.js"></script>
+    <script src="/dist/navbar-bundle.js"></script>
   </head>
   <body>
+    <hp-navbar></hp-navbar>
     <div id="page_heading">
       <h1>Hey {{ uname }}</h1>
     </div>
+    <hp-admin-panel></hp-admin-panel>
   </body>
 </html>

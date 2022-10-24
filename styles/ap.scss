@@ -6,4 +6,8 @@ body {
 
 #page_heading {
     text-align: center;
+    margin-top: 60px;
+    h1 {
+	font-size: $title_size;
+    }
 }
