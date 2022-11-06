@@ -1,0 +1,40 @@
+services:
+  frontend:
+    image: uludev/homepage:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    links:
+      - "database:db"
+    environment:
+      DATABASE_URL: "postgres://homepage:homepage@db/homepage"
+    networks:
+      - db-tier
+    volumes:
+      - type: bind
+        source: ./Rocket.toml
+        target: /homepage/Rocket.toml
+
+  database:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: moritz
+      POSTGRES_USER: moritz
+    volumes:
+      - type: volume
+        source: homepage-postgres
+        target: /var/lib/postgresql/data
+      #- type: bind
+      #  source: /var/lib/postgres/data
+      #  target: /var/lib/postgresql/data
+    networks:
+      - db-tier
+
+volumes:
+  homepage-postgres:
+    external: true
+networks:
+  db-tier: {}

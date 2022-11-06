@@ -2,3 +2,7 @@ target
 dist
 static/styles
 typescript/node_modules
+.env
+docker-compose.yml
+Rocket.toml
+package-lock.json

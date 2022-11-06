@@ -14,11 +14,19 @@ In order to build it and deploy it you need:
 - A working rust installation (`stable channel`)
 
 ## Setup
+### Compilation
+To build everything just run `make` (note that `make` doesn't just build the
+webserver but also all the frontend code).
+
+### Database setup
 The database url is read from the environment variable `DATABASE_URL` (you can
 store it in `.env`). To set up the database you can use the `diesel` cli. You
 can simply run `diesel migration run` to setup your database.
 
-To build everything just run `make` (note that `make` doesn't just build the
-webserver but also all the frontend code).
+If you're using the docker image of this website I would recommend using
+`docker-compose` to setup the database. There is an example provided in
+[`compose_example.yml`](/compose_example.yml) that shows how you can setup your
+environment.
 
+### Running
 If you wish to run the website use `cargo run`

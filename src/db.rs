@@ -7,7 +7,7 @@ use super::models::*;
 use super::schema::*;
 use super::tokenstore::TokenStore;
 use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    password_hash::{rand_core::OsRng, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
 use std::env;

@@ -6,4 +6,4 @@ RUN apt-get install sassc yarnpkg -y
 RUN cd typescript && yarnpkg && cd ..
 RUN make
 RUN cargo build --release
-CMD ["cargo run --release"]
+CMD ["./target/release/homepage"]

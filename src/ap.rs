@@ -1,8 +1,7 @@
 use std::io::Cursor;
 
 use askama::Template;
-use rocket::{response::{Responder, Redirect}, http::{ContentType, Status}};
-use rocket::uri;
+use rocket::{response::Responder , http::{ContentType, Status}};
 use rocket::Response;
 
 

@@ -8,3 +8,4 @@ dist
 *.js
 !webpack.config.js
 *.log
+compose.yml

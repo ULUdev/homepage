@@ -14,7 +14,7 @@ div#page-heading {
 }
 
 div#description {
-    width: 600px;
+    width: 900px;
     display: flex;
     justify-content: center;
     margin: auto;
@@ -22,6 +22,7 @@ div#description {
     border-radius: 10px;
     background-color: $secbg;
     color: $secfg;
+    font-size: 20px;
     p {
 	margin: 0;
 	padding: 5px;

@@ -9,10 +9,10 @@ use rocket::http::{Cookie, CookieJar, Status};
 use rocket::outcome::Outcome;
 use rocket::request::FromRequest;
 use rocket::request::Request;
-use rocket::response::{Redirect, Responder};
+use rocket::response::Redirect;
 use rocket::time::Duration;
 use rocket::State;
-use rocket::{request, Response};
+use rocket::request;
 use std::ops::Deref;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
@@ -107,7 +107,7 @@ fn admin_panel(
 ) -> ApResponse {
     match cookies.get_private("token") {
 	Some(token) => {
-	    let mut ts = token_store.inner().lock().unwrap();
+	    let ts = token_store.inner().lock().unwrap();
 	    let token: u64 = match token.value().parse() {
 		Ok(n) => n,
 		Err(_) => {
