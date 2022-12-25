@@ -26,7 +26,7 @@ pub struct AboutTemplate {
 
 impl AboutTemplate {
     pub fn new(about_text: String) -> AboutTemplate {
-	AboutTemplate { about_text }
+        AboutTemplate { about_text }
     }
 }
 

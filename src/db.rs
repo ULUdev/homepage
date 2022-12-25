@@ -53,7 +53,12 @@ pub fn create_new_user<'a>(
     let new_user = NewUser {
         name: uname,
         pwd: pwd_hash.as_str(),
-        privs: 0b1011_0000,
+        privs: UserPrivs::new()
+            .comment(true)
+            .post(true)
+            .edit(true)
+            .delete_own(true)
+            .build().try_into().unwrap(),
     };
     match diesel::insert_into(users::table)
         .values(&new_user)
@@ -74,25 +79,25 @@ pub fn authenticate_user(
 ) -> Result<String, AuthError> {
     let argon2 = Argon2::default();
     let pwd_hash = match users::table
-	.filter(users::dsl::name.eq(uname.clone()))
-	.limit(1)
-	.load::<User>(conn)
+        .filter(users::dsl::name.eq(uname.clone()))
+        .limit(1)
+        .load::<User>(conn)
     {
-	Ok(n) => n[0].pwd.clone(),
-	Err(_) => {
-	    return Err(AuthError::DbFailed);
-	}
+        Ok(n) => n[0].pwd.clone(),
+        Err(_) => {
+            return Err(AuthError::DbFailed);
+        }
     };
     //DEBUG
     let parsed_hash = match argon2::PasswordHash::new(&pwd_hash) {
-	Ok(n) => n,
-	Err(_) => {
-	    return Err(AuthError::Other);
-	}
+        Ok(n) => n,
+        Err(_) => {
+            return Err(AuthError::Other);
+        }
     };
     if argon2.verify_password(pwd.as_bytes(), &parsed_hash).is_ok() {
         // generate new token, store it in the database and return it.
-        let matched_users = match users::table
+        let matched_users = match users::dsl::users
             .filter(users::dsl::name.eq(uname))
             .limit(1)
             .load::<User>(conn)
@@ -102,7 +107,7 @@ pub fn authenticate_user(
                 return Err(AuthError::DbFailed);
             }
         };
-        let uid: u64 = matched_users[0].id.try_into().unwrap();
+        let uid: usize = matched_users[0].id.try_into().unwrap();
         let _token = store.new_token(uid);
         Ok(uid.to_string())
     } else {
@@ -121,9 +126,13 @@ pub fn get_content_entry(conn: &PgConnection, title: String) -> Result<ContentEn
     }
 }
 
-pub fn get_uname(conn: &PgConnection, uid: u64) -> Option<String> {
-    match users::dsl::users.filter(users::dsl::id.eq::<i32>(uid.try_into().unwrap())).limit(1).load::<User>(conn) {
-	Ok(n) => Some(n[0].name.clone()),
-	Err(_) => None
+pub fn get_uname(conn: &PgConnection, uid: usize) -> Option<String> {
+    match users::dsl::users
+        .filter(users::dsl::id.eq::<i32>(uid.try_into().unwrap()))
+        .limit(1)
+        .load::<User>(conn)
+    {
+        Ok(n) => Some(n[0].name.clone()),
+        Err(_) => None,
     }
 }

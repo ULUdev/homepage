@@ -23,6 +23,9 @@ dev: $(SRC)
 release: $(SRC)
 	cargo build --release
 
+docker:
+	docker build -t uludev/homepage:latest .
+
 clean:
 	rm -rf dist
 	rm -rf $(CSS)

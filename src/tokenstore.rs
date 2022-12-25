@@ -2,7 +2,7 @@ use rand::prelude::*;
 use std::collections::HashMap;
 
 pub struct TokenStore {
-    tokens: HashMap<u64, u64>,
+    tokens: HashMap<usize, usize>,
 }
 
 impl TokenStore {
@@ -14,18 +14,21 @@ impl TokenStore {
     }
 
     /// generate a new token and return it
-    pub fn new_token(&mut self, id: u64) -> u64 {
+    pub fn new_token(&mut self, id: usize) -> Option<usize> {
+        let old_tokens: Vec<usize> = self.tokens.clone().into_keys().collect();
+	if old_tokens.len() >= usize::MAX {
+	    return None;
+	}
         let mut rng = rand::thread_rng();
-        let mut token: u64 = rng.gen();
-        let old_tokens: Vec<u64> = self.tokens.clone().into_keys().collect();
+        let mut token: usize = rng.gen();
         while old_tokens.contains(&token) {
             token = rng.gen();
         }
         self.tokens.insert(token, id);
-        token
+	Some(token)
     }
 
-    pub fn get_id(&self, token: &u64) -> Option<&u64> {
-	self.tokens.get(token)
+    pub fn get_id(&self, token: &usize) -> Option<&usize> {
+        self.tokens.get(token)
     }
 }

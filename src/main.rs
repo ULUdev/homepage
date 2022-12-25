@@ -7,12 +7,12 @@ use rocket::form::Form;
 use rocket::fs::{FileServer, NamedFile};
 use rocket::http::{Cookie, CookieJar, Status};
 use rocket::outcome::Outcome;
+use rocket::request;
 use rocket::request::FromRequest;
 use rocket::request::Request;
 use rocket::response::Redirect;
 use rocket::time::Duration;
 use rocket::State;
-use rocket::request;
 use std::ops::Deref;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
@@ -86,12 +86,6 @@ async fn about() -> AboutTemplate {
     AboutTemplate::new(String::new())
 }
 
-// TODO: implement admin panel
-// #[get("/ap")]
-// async fn admin_panel() -> AdminTemplate {
-//
-// }
-
 #[get("/login")]
 async fn login_page() -> Option<NamedFile> {
     NamedFile::open(Path::new("static/pages/login.html"))
@@ -106,24 +100,24 @@ fn admin_panel(
     token_store: &State<Arc<Mutex<TokenStore>>>,
 ) -> ApResponse {
     match cookies.get_private("token") {
-	Some(token) => {
-	    let ts = token_store.inner().lock().unwrap();
-	    let token: u64 = match token.value().parse() {
-		Ok(n) => n,
-		Err(_) => {
-		    todo!();
-		}
-	    };
-	    let uid = ts.get_id(&token);
-	    let uname = match db::get_uname(&dbcon, token) {
-		Some(n) => n,
-		None => {
-		    return ApResponse::new_error();
-		}
-	    };
-	    ApResponse::new(uname)
-	},
-	None => ApResponse::new_error(),
+        Some(token) => {
+            let ts = token_store.inner().lock().unwrap();
+            let token: usize = match token.value().parse() {
+                Ok(n) => n,
+                Err(_) => {
+                    todo!();
+                }
+            };
+            let _uid = ts.get_id(&token);
+            let uname = match db::get_uname(&dbcon, token) {
+                Some(n) => n,
+                None => {
+                    return ApResponse::new_error();
+                }
+            };
+            ApResponse::new(uname)
+        }
+        None => ApResponse::new_error(),
     }
 }
 
@@ -143,10 +137,20 @@ fn authenticate(
         &mut *ts,
     ) {
         Ok(n) => n,
-        Err(_) => {
-            //return Status::InternalServerError;
-            todo!();
-        }
+        Err(e) => match e {
+            db::AuthError::DbFailed => {
+                return Redirect::to(uri!("/db_failed"));
+            }
+            db::AuthError::Unauthorized => {
+                return Redirect::to(uri!("/auth_failed"));
+            }
+            db::AuthError::TokenFailed => {
+                return Redirect::to(uri!("/login"));
+            }
+            db::AuthError::Other => {
+                return Redirect::to(uri!("/auth_failed"));
+            }
+        },
     };
     // store the token as a cookie on the client
     let n_tok = token.clone();
@@ -166,13 +170,26 @@ async fn not_found() -> Option<NamedFile> {
         .ok()
 }
 
+#[get("/auth_failed")]
+async fn auth_failed() -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/pages/auth_failed.html")).await.ok()
+}
+
 #[launch]
 fn rocket() -> _ {
     let token_store = Arc::new(Mutex::new(TokenStore::new()));
     rocket::build()
         .mount(
             "/",
-            routes![index, authenticate, login_page, projects, about, admin_panel],
+            routes![
+                index,
+                authenticate,
+                login_page,
+                projects,
+                about,
+                admin_panel,
+		auth_failed
+            ],
         )
         .mount("/static", FileServer::from("static/"))
         .mount("/dist", FileServer::from("dist/"))
