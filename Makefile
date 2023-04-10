@@ -4,6 +4,8 @@ BIN = release
 SRC = $(wildcard src/*.rs) $(wildcard src/**/*.rs)
 CSS = $(subst styles,static/styles,$(STYLES:.scss=.css))
 
+.PHONY: all clean release dev
+
 all: $(CSS) $(BIN) dist
 
 static/styles:

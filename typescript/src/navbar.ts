@@ -52,6 +52,7 @@ color: var(--bg);
     }
     
     render() {
+	const userinfo = JSON.parse(document.getElementById("userinfo").innerText);
 	let nav_items = [];
 	nav_items.push(this.navItem("home", "/"));
 	nav_items.push(this.navItem("projects", "/projects"));
@@ -59,7 +60,11 @@ color: var(--bg);
 	nav_items.push(this.navItem("github", "http://github.com/ULUdev"));
 	nav_items.push(this.navItem("gitlab", "http://gitlab.sokoll.com/moritz"));
 	nav_items.push(this.navItemRight("admin", "/ap"));
-	nav_items.push(this.navItemRight("login", "/login"));
+	if (userinfo.loggedIn) {
+	    nav_items.push(this.navItemRight("logout", "/logout"));
+	} else {
+	    nav_items.push(this.navItemRight("login", "/login"));
+	}
 	return html`<ul>${nav_items}</ul>`;
     }
 }

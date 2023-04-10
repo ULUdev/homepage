@@ -1,20 +1,28 @@
 use std::io::Cursor;
-
 use askama::Template;
-use rocket::http::ContentType;
-use rocket::http::Status;
 use rocket::response::Responder;
-use rocket::response::Response;
+use rocket::Response;
+use rocket::http::{Status, ContentType};
+
+#[derive(Debug)]
+pub struct LoginInfo {
+    pub loggedin: bool,
+    pub username: Option<String>,
+}
 
 #[derive(Template)]
 #[template(path = "index.html")]
 pub struct IndexTemplate {
     description: String,
+    login_info: LoginInfo,
 }
 
 impl IndexTemplate {
-    pub fn new(description: String) -> IndexTemplate {
-        IndexTemplate { description }
+    pub fn new(description: String, login_info: LoginInfo) -> IndexTemplate {
+        IndexTemplate {
+            description,
+            login_info,
+        }
     }
 }
 
@@ -22,11 +30,15 @@ impl IndexTemplate {
 #[template(path = "about.html")]
 pub struct AboutTemplate {
     about_text: String,
+    login_info: LoginInfo,
 }
 
 impl AboutTemplate {
-    pub fn new(about_text: String) -> AboutTemplate {
-        AboutTemplate { about_text }
+    pub fn new(about_text: String, login_info: LoginInfo) -> AboutTemplate {
+        AboutTemplate {
+            about_text,
+            login_info,
+        }
     }
 }
 
@@ -58,3 +70,4 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for IndexTemplate {
         }
     }
 }
+

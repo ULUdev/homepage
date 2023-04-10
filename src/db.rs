@@ -37,6 +37,7 @@ pub fn establish_connection() -> r2d2::Pool<r2d2::ConnectionManager<PgConnection
     }
 }
 
+/// create a new user
 pub fn create_new_user<'a>(
     conn: &PgConnection,
     uname: &'a str,
@@ -83,7 +84,12 @@ pub fn authenticate_user(
         .limit(1)
         .load::<User>(conn)
     {
-        Ok(n) => n[0].pwd.clone(),
+        Ok(n) => {
+            if n.len() < 1 {
+                return Err(AuthError::Unauthorized);
+            }
+            n[0].pwd.clone()
+        },
         Err(_) => {
             return Err(AuthError::DbFailed);
         }
@@ -108,13 +114,14 @@ pub fn authenticate_user(
             }
         };
         let uid: usize = matched_users[0].id.try_into().unwrap();
-        let _token = store.new_token(uid);
-        Ok(uid.to_string())
+        let token = store.new_token(uid).unwrap();
+        Ok(token.to_string())
     } else {
         Err(AuthError::Unauthorized)
     }
 }
 
+/// get content entry from database
 pub fn get_content_entry(conn: &PgConnection, title: String) -> Result<ContentEntry, DbConnError> {
     match content::dsl::content
         .filter(content::dsl::name.eq(title))
@@ -126,6 +133,7 @@ pub fn get_content_entry(conn: &PgConnection, title: String) -> Result<ContentEn
     }
 }
 
+/// get the username for some user id
 pub fn get_uname(conn: &PgConnection, uid: usize) -> Option<String> {
     match users::dsl::users
         .filter(users::dsl::id.eq::<i32>(uid.try_into().unwrap()))

@@ -9,3 +9,4 @@ dist
 !webpack.config.js
 *.log
 compose.yml
+cookies

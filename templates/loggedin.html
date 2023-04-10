@@ -1,0 +1,11 @@
+<script id="userinfo" type="application/json">
+  {
+      "loggedIn": {{ login_info.loggedin }},
+      {% match login_info.username %}
+      {% when Some(n) %}
+      "username": "{{ n }}"
+      {% when None %}
+      "username": null
+      {% endmatch %}
+  }
+</script>

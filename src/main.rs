@@ -24,6 +24,8 @@ pub mod models;
 pub mod schema;
 pub mod templates;
 pub mod tokenstore;
+//pub mod askama_rocket;
+//use askama_rocket::*;
 use templates::*;
 use tokenstore::TokenStore;
 
@@ -61,8 +63,27 @@ struct Login<'r> {
     pwd: &'r str,
 }
 
+// helper function
+fn create_login_info(dbcon: &DbConn, ts: &TokenStore, cookies: &CookieJar<'_>) -> LoginInfo {
+    let mut username: Option<String> = None;
+    let mut loggedin: bool = false;
+    if let Some(cookie) = cookies.get_private("token") {
+        let token: usize = cookie.value().parse().unwrap();
+	if let Some(uid) = ts.get_id(&token) {
+            loggedin = true;
+            username = db::get_uname(dbcon, *uid);
+	}
+    }
+    LoginInfo { username, loggedin }
+}
+
 #[get("/")]
-async fn index(dbcon: DbConn) -> IndexTemplate {
+async fn index(
+    dbcon: DbConn,
+    token_store: &State<Arc<Mutex<TokenStore>>>,
+    cookies: &CookieJar<'_>,
+) -> IndexTemplate {
+    let ts = token_store.inner().lock().unwrap();
     let content = match db::get_content_entry(&dbcon, String::from("description")) {
         Ok(n) => match String::from_utf8(n.content_inner) {
             Ok(k) => k,
@@ -70,9 +91,11 @@ async fn index(dbcon: DbConn) -> IndexTemplate {
         },
         Err(_) => String::from("default"),
     };
-    templates::IndexTemplate::new(content)
+    // eprintln!("{:?}", create_login_info(&dbcon, &ts, cookies));
+    templates::IndexTemplate::new(content, create_login_info(&dbcon, &ts, cookies))
 }
 
+// TODO: make a template out of this
 #[get("/projects")]
 async fn projects() -> Option<NamedFile> {
     NamedFile::open(Path::new("static/pages/projects.html"))
@@ -81,9 +104,14 @@ async fn projects() -> Option<NamedFile> {
 }
 
 #[get("/about")]
-async fn about() -> AboutTemplate {
+async fn about(
+    dbcon: DbConn,
+    token_store: &State<Arc<Mutex<TokenStore>>>,
+    cookies: &CookieJar<'_>,
+) -> AboutTemplate {
+    let ts = token_store.inner().lock().unwrap();
     // TODO: needs an actual database integration
-    AboutTemplate::new(String::new())
+    AboutTemplate::new(String::new(), create_login_info(&dbcon, &ts, cookies))
 }
 
 #[get("/login")]
@@ -102,22 +130,22 @@ fn admin_panel(
     match cookies.get_private("token") {
         Some(token) => {
             let ts = token_store.inner().lock().unwrap();
-            let token: usize = match token.value().parse() {
-                Ok(n) => n,
-                Err(_) => {
-                    todo!();
-                }
-            };
-            let _uid = ts.get_id(&token);
-            let uname = match db::get_uname(&dbcon, token) {
+	    // we can just panic if parsing failed, as it will automatically
+	    // return a 500
+	    let token:  usize = token.value().parse().unwrap();
+            let uid = ts.get_id(&token).unwrap();
+            let uname = match db::get_uname(&dbcon, *uid) {
                 Some(n) => n,
                 None => {
-                    return ApResponse::new_error();
+                    return ApResponse::new_error(create_login_info(&dbcon, &ts, cookies));
                 }
             };
-            ApResponse::new(uname)
+            ApResponse::new(uname, create_login_info(&dbcon, &ts, cookies))
         }
-        None => ApResponse::new_error(),
+        None => ApResponse::new_error(LoginInfo {
+            loggedin: false,
+            username: None,
+        }),
     }
 }
 
@@ -172,7 +200,21 @@ async fn not_found() -> Option<NamedFile> {
 
 #[get("/auth_failed")]
 async fn auth_failed() -> Option<NamedFile> {
-    NamedFile::open(Path::new("static/pages/auth_failed.html")).await.ok()
+    NamedFile::open(Path::new("static/pages/auth_failed.html"))
+        .await
+        .ok()
+}
+#[get("/logout")]
+fn logout(token_store: &State<Arc<Mutex<TokenStore>>>, cookies: &CookieJar<'_>) -> Redirect {
+    let mut ts = token_store.inner().lock().unwrap();
+    if let Some(mut cookie) = cookies.get_private("token") {
+        let token: usize = cookie.value().parse().unwrap();
+        if ts.has_token(&token) {
+            ts.delete_token(&token);
+        }
+        cookie.make_removal();
+    }
+    Redirect::to(uri!("/"))
 }
 
 #[launch]
@@ -188,7 +230,8 @@ fn rocket() -> _ {
                 projects,
                 about,
                 admin_panel,
-		auth_failed
+                auth_failed,
+                logout
             ],
         )
         .mount("/static", FileServer::from("static/"))

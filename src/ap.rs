@@ -1,11 +1,10 @@
 use std::io::Cursor;
-
 use askama::Template;
+use crate::LoginInfo;
+use rocket::response::Responder;
 use rocket::Response;
-use rocket::{
-    http::{ContentType, Status},
-    response::Responder,
-};
+use rocket::http::ContentType;
+use rocket::http::Status;
 
 enum ApResponseKind {
     Success,
@@ -17,20 +16,23 @@ enum ApResponseKind {
 pub struct ApResponse {
     uname: String,
     kind: ApResponseKind,
+    login_info: LoginInfo,
 }
 
 impl ApResponse {
-    pub fn new(uname: String) -> ApResponse {
+    pub fn new(uname: String, login_info: LoginInfo) -> ApResponse {
         ApResponse {
             uname,
             kind: ApResponseKind::Success,
+            login_info,
         }
     }
 
-    pub fn new_error() -> ApResponse {
+    pub fn new_error(login_info: LoginInfo) -> ApResponse {
         ApResponse {
             uname: String::new(),
             kind: ApResponseKind::AuthFailure,
+            login_info,
         }
     }
 }
