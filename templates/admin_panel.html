@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="/static/styles/ap.css">
     <script src="/dist/ap-bundle.js"></script>
     <script src="/dist/navbar-bundle.js"></script>
+    <script type="module" src="/dist/cookiebanner-bundle.js"></script>
     {% include "loggedin.html" %}
   </head>
   <body>
@@ -13,5 +14,6 @@
       <h1>Hey {{ uname }}</h1>
     </div>
     <hp-admin-panel></hp-admin-panel>
+    <hp-cookiebanner></hp-cookiebanner>
   </body>
 </html>

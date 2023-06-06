@@ -1,6 +1,6 @@
 SASSC = sassc
 STYLES = $(wildcard styles/*.scss)
-BIN = release
+BIN = target/release/homepage
 SRC = $(wildcard src/*.rs) $(wildcard src/**/*.rs)
 CSS = $(subst styles,static/styles,$(STYLES:.scss=.css))
 
@@ -14,7 +14,7 @@ static/styles:
 static/styles/%.css: styles/%.scss static/styles
 	$(SASSC) $< $@
 
-dist:
+dist: $(wildcard typescript/src/*.ts)
 	mkdir -p dist
 	$(MAKE) -C typescript
 	mv typescript/dist/* dist
@@ -22,7 +22,7 @@ dist:
 dev: $(SRC)
 	cargo build
 
-release: $(SRC)
+target/release/homepage: $(SRC)
 	cargo build --release
 
 docker:
