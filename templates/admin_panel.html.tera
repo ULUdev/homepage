@@ -6,7 +6,7 @@
     <script src="/dist/ap-bundle.js"></script>
     <script src="/dist/navbar-bundle.js"></script>
     <script type="module" src="/dist/cookiebanner-bundle.js"></script>
-    {% include "loggedin.html" %}
+    {% include "loggedin" %}
   </head>
   <body>
     <hp-navbar></hp-navbar>

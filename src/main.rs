@@ -13,23 +13,16 @@ use rocket::request::Request;
 use rocket::response::Redirect;
 use rocket::time::Duration;
 use rocket::State;
+use rocket_dyn_templates::{context, Template};
 use std::ops::Deref;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-use templates::IndexTemplate;
 
-pub mod ap;
 pub mod db;
 pub mod models;
 pub mod schema;
-pub mod templates;
 pub mod tokenstore;
-//pub mod askama_rocket;
-//use askama_rocket::*;
-use templates::*;
 use tokenstore::TokenStore;
-
-use ap::ApResponse;
 
 pub struct DbConn(diesel::r2d2::PooledConnection<diesel::r2d2::ConnectionManager<PgConnection>>);
 
@@ -63,16 +56,21 @@ struct Login<'r> {
     pwd: &'r str,
 }
 
+pub struct LoginInfo {
+    pub username: Option<String>,
+    pub loggedin: bool,
+}
+
 // helper function
 fn create_login_info(dbcon: &DbConn, ts: &TokenStore, cookies: &CookieJar<'_>) -> LoginInfo {
     let mut username: Option<String> = None;
     let mut loggedin: bool = false;
     if let Some(cookie) = cookies.get_private("token") {
         let token: usize = cookie.value().parse().unwrap();
-	if let Some(uid) = ts.get_id(&token) {
+        if let Some(uid) = ts.get_id(&token) {
             loggedin = true;
             username = db::get_uname(dbcon, *uid);
-	}
+        }
     }
     LoginInfo { username, loggedin }
 }
@@ -82,7 +80,7 @@ async fn index(
     dbcon: DbConn,
     token_store: &State<Arc<Mutex<TokenStore>>>,
     cookies: &CookieJar<'_>,
-) -> IndexTemplate {
+) -> Template {
     let ts = token_store.inner().lock().unwrap();
     let content = match db::get_content_entry(&dbcon, String::from("description")) {
         Ok(n) => match String::from_utf8(n.content_inner) {
@@ -92,7 +90,11 @@ async fn index(
         Err(_) => String::from("default"),
     };
     // eprintln!("{:?}", create_login_info(&dbcon, &ts, cookies));
-    templates::IndexTemplate::new(content, create_login_info(&dbcon, &ts, cookies))
+    let li = create_login_info(&dbcon, &ts, cookies);
+    Template::render(
+        "index",
+        context! { description: content, login_info: context! { username: li.username, loggedin: li.loggedin } },
+    )
 }
 
 // TODO: make a template out of this
@@ -108,10 +110,14 @@ async fn about(
     dbcon: DbConn,
     token_store: &State<Arc<Mutex<TokenStore>>>,
     cookies: &CookieJar<'_>,
-) -> AboutTemplate {
+) -> Template {
     let ts = token_store.inner().lock().unwrap();
     // TODO: needs an actual database integration
-    AboutTemplate::new(String::new(), create_login_info(&dbcon, &ts, cookies))
+    let li = create_login_info(&dbcon, &ts, cookies);
+    Template::render(
+        "about",
+        context! { about_text: String::new(), login_info: context! { username: li.username, loggedin: li.loggedin }},
+    )
 }
 
 #[get("/login")]
@@ -126,26 +132,26 @@ fn admin_panel(
     cookies: &CookieJar<'_>,
     dbcon: DbConn,
     token_store: &State<Arc<Mutex<TokenStore>>>,
-) -> ApResponse {
+) -> Template {
     match cookies.get_private("token") {
         Some(token) => {
             let ts = token_store.inner().lock().unwrap();
-	    // we can just panic if parsing failed, as it will automatically
-	    // return a 500
-	    let token:  usize = token.value().parse().unwrap();
+            // we can just panic if parsing failed, as it will automatically
+            // return a 500
+            let token: usize = token.value().parse().unwrap();
             let uid = ts.get_id(&token).unwrap();
             let uname = match db::get_uname(&dbcon, *uid) {
                 Some(n) => n,
-                None => {
-                    return ApResponse::new_error(create_login_info(&dbcon, &ts, cookies));
-                }
+                None => panic!(), // TODO: return HTTP 500
             };
-            ApResponse::new(uname, create_login_info(&dbcon, &ts, cookies))
+            let li = create_login_info(&dbcon, &ts, cookies);
+            Template::render(
+                "admin_panel",
+                context! { uname: uname, login_info: context! { username: li.username, loggedin: li.loggedin } },
+            )
+            // ApResponse::new(uname, create_login_info(&dbcon, &ts, cookies))
         }
-        None => ApResponse::new_error(LoginInfo {
-            loggedin: false,
-            username: None,
-        }),
+        None => panic!(), // TODO: return HTTP 403
     }
 }
 
@@ -239,6 +245,7 @@ fn rocket() -> _ {
         .register("/", catchers![not_found])
         .manage(db::establish_connection())
         .manage(token_store)
+        .attach(Template::fairing())
 }
 
 #[cfg(test)]
@@ -257,6 +264,7 @@ mod test {
             .mount("/dist", FileServer::from("dist/"))
             .register("/", catchers![not_found])
             .manage(token_store)
+            .attach(Template::fairing())
     }
 
     // #[test]

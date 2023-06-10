@@ -1,0 +1,6 @@
+<script id="userinfo" type="application/json">
+  {
+      "loggedIn": {{ login_info.loggedin }},
+      "username": "{{ login_info.username }}"
+  }
+</script>

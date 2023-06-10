@@ -59,7 +59,9 @@ pub fn create_new_user<'a>(
             .post(true)
             .edit(true)
             .delete_own(true)
-            .build().try_into().unwrap(),
+            .build()
+            .try_into()
+            .unwrap(),
     };
     match diesel::insert_into(users::table)
         .values(&new_user)
@@ -89,7 +91,7 @@ pub fn authenticate_user(
                 return Err(AuthError::Unauthorized);
             }
             n[0].pwd.clone()
-        },
+        }
         Err(_) => {
             return Err(AuthError::DbFailed);
         }
